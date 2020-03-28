@@ -1,0 +1,24 @@
+{
+  "name": "ulla-bella",
+  "version": "1.0.0",
+  "description": "Ulla-Bella, min sekreterare.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hnrklssn/ulla-bella.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hnrklssn/ulla-bella/issues"
+  },
+  "homepage": "https://github.com/hnrklssn/ulla-bella#readme",
+  "devDependencies": {
+    "@types/node": "^13.9.5",
+    "typescript": "^3.8.3"
+  }
+}
