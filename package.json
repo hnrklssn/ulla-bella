@@ -4,7 +4,10 @@
   "description": "Ulla-Bella, min sekreterare.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon",
+    "build": "rm -rf ./build && tsc",
+    "start": "npm run build && node build/index.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +22,8 @@
   "homepage": "https://github.com/hnrklssn/ulla-bella#readme",
   "devDependencies": {
     "@types/node": "^13.9.5",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.8.1",
     "typescript": "^3.8.3"
   }
 }
