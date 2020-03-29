@@ -8,7 +8,7 @@ import {
     Guard,
     MetadataStorage,
 } from "@typeit/discord";
-import { ClientUser, Message } from "discord.js";
+import { ClientUser, Message, User } from "discord.js";
 
 function NotBot(message: Message, client: Client) {
     return client?.user?.id !== message.author.id;
@@ -28,8 +28,8 @@ function Authorize(message: Message, client: Client) {
 
 @Discord({ prefix: "!", commandCaseSensitive: true })
 abstract class AppDiscord {
-    private helpQ = [];
-    private presentQ = [];
+    private helpQ: User[][] = [];
+    private presentQ: User[][] = [];
 
     @Command("hello")
     @Guard(NotBot)
@@ -37,9 +37,7 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        console.log("command received");
-        console.log("msg: ", message);
-        message.reply("Hello!");
+        message.reply("hallååååå! Det här är Ulla-Bella, min sekreterare!");
     }
 
     @Command("askForHelp")
@@ -48,13 +46,22 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        if(this.helpQ.includes(message.author)) {
+        if(this.helpQ.some(pair => pair.includes(message.author))) {
             message.reply(["you are already in line for help.", "You can remove yourself from the queue with !removeHelp, or view the queue with !showHelp"]);
             return;
         }
         console.log("mentions: ", message.mentions);
-        const len = this.helpQ.push(message.author);
-        message.reply(["you are now in line for help.", this.queuePositionText(len-1)]);
+        const coQueuers = [...message.mentions.users.values()];
+        const len = this.helpQ.push([message.author, ...coQueuers]);
+        if(coQueuers.length) {
+            message.reply([`you are now in line for help with ${coQueuers.join(", ")}.`,
+                this.queuePositionText(len-1)]);
+        } else {
+            message.reply(["you are now in line for help.",
+                this.queuePositionText(len-1),
+                "Tip: you can queue together with your lab partner by mentioning them when asking for help."
+            ]);
+        }
     }
 
     @Command("nextHelp")
@@ -68,9 +75,13 @@ abstract class AppDiscord {
             message.reply("the help queue is empty.");
             return;
         }
-        const student = this.helpQ.shift();
-        message.reply(`the next person in line is ${student}.`);
-        this.popImpl(student, message);
+        const students = this.helpQ.shift();
+        if(students.length === 1) {
+            message.reply(`the next person in line is ${students[0]}.`);
+        } else {
+            message.reply(`the next people in line are ${students.join(", ")}.`);
+        }
+        this.popImpl(students, message);
         return;
     }
 
@@ -90,11 +101,11 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        if(!this.helpQ.includes(message.author)) {
+        if(!this.helpQ.some(pair => pair.includes(message.author))) {
             message.reply("you are not currently in line for help.");
             return;
         }
-        this.helpQ = this.helpQ.filter((e) => e != message.author);
+        this.helpQ = this.helpQ.filter((pair) => !pair.includes(message.author));
         message.reply("you have been removed from the help queue.");
     }
 
@@ -106,12 +117,22 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        if(this.presentQ.includes(message.author)) {
+        console.log(this.presentQ.some(pair => pair.includes(message.author)))
+        if(this.presentQ.some(pair => pair.includes(message.author))) {
             message.reply(["you are already in line to present.", "You can remove yourself from the queue with !removePresent, or view the queue with !showPresent"]);
             return;
         }
-        const len = this.presentQ.push(message.author);
-        message.reply(["you are now in line to present.", this.queuePositionText(len-1)]);
+        const coQueuers = [...message.mentions.users.values()];
+        const len = this.presentQ.push([message.author, ...coQueuers]);
+        if(coQueuers.length) {
+            message.reply([`you are now in line to present with ${coQueuers.join(", ")}.`,
+                this.queuePositionText(len-1)]);
+        } else {
+            message.reply(["you are now in line to present.",
+                this.queuePositionText(len-1),
+                "Tip: you can queue together with your lab partner by mentioning them when asking to present."
+            ]);
+        }
     }
 
     @Command("nextPresent")
@@ -124,9 +145,13 @@ abstract class AppDiscord {
             message.reply("the presentation queue is empty.");
             return;
         }
-        const student = this.presentQ.shift();
-        message.reply(`the next person in line is ${student}.`);
-        this.popImpl(student, message);
+        const students = this.presentQ.shift();
+        if(students.length === 1) {
+            message.reply(`the next person in line is ${students[0]}.`);
+        } else {
+            message.reply(`the next people in line are ${students.join(", ")}.`);
+        }
+        this.popImpl(students, message);
         return;
     }
 
@@ -146,11 +171,11 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        if(!this.presentQ.includes(message.author)) {
+        if(!this.presentQ.some(pair => pair.includes(message.author))) {
             message.reply("you are not currently in line to present.");
             return;
         }
-        this.helpQ = this.presentQ.filter((e) => e != message.author);
+        this.presentQ = this.presentQ.filter((pair) => !pair.includes(message.author));
         message.reply("you have been removed from the presentation queue.");
     }
 
@@ -164,15 +189,23 @@ abstract class AppDiscord {
             message.reply("both queues are empty.");
             return;
         }
-        let student;
+        let students;
         if(this.presentQ.length > this.helpQ.length * 3) {
-            student = this.presentQ.shift();
-            message.reply(`the next person in line is ${student}. They want to present.`);
+            students = this.presentQ.shift();
+            if(students.length === 1) {
+                message.reply(`the next person in line is ${students[0]}. They want to present.`);
+            } else {
+                message.reply(`the next people in line are ${students.join(", ")}. They want to present.`);
+            }
         } else {
-            student = this.helpQ.shift();
-            message.reply(`the next person in line is ${student}. They want help.`);
+            students = this.helpQ.shift();
+            if(students.length === 1) {
+                message.reply(`the next person in line is ${students[0]}. They want help.`);
+            } else {
+                message.reply(`the next people in line are ${students.join(", ")}. They want help.`);
+            }
         }
-        this.popImpl(student, message);
+        this.popImpl(students, message);
     }
 
     // TODO: add descriptions
@@ -200,7 +233,7 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        message.reply("command not found, show available commands with !commands");
+        message.reply("command not found. Show available commands with !commands");
         console.log("msg: ", message);
     }
 
@@ -228,21 +261,19 @@ abstract class AppDiscord {
         return `There are ${position} people before you.`;
     }
 
-    // TODO: test this
-    private popImpl(student: ClientUser, message: CommandMessage) {
+    // TODO: figure out a way to get this to work
+    private popImpl(students: User[], message: CommandMessage) {
         const channel = message?.member.voice.channel;
         if(!channel) return;
-        const member = student.presence.member;
-        if(!member) return;
-        try {
-            member.voice.setChannel(channel, "It's your turn");
-        } catch {
-            // do nothing
-        }
+        students.forEach(student => {
+            const member = student.presence.member;
+            if(!member) return;
+            //member.voice.setChannel(channel, "It's your turn").catch(console.error);
+        });
     }
 
-    private showQueueImpl(queue: ClientUser[]) {
+    private showQueueImpl(queue: User[][]) {
         if(queue.length == 0) return ["The queue is empty"];
-        return queue.map((e, i) => `${i+1}. ${e.username}`);
+        return queue.map((students, i) => `${i+1}. ${students.join(", ")}`);
     }
 }
