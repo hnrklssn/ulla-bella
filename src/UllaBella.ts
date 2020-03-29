@@ -228,9 +228,8 @@ abstract class AppDiscord {
         message.reply(`The next person in line is ${student}.`);
     }
 
-    // TODO: don't mention people
     private showQueueImpl(queue: ClientUser[]) {
         if(queue.length == 0) return ["The queue is empty"];
-        return queue.map((e, i) => `${i+1}. ${e}`);
+        return queue.map((e, i) => `${i+1}. ${e.username}`);
     }
 }
