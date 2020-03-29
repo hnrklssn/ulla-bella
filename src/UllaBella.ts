@@ -69,6 +69,20 @@ abstract class AppDiscord {
         message.reply(["This is the current help queue:", ...displayedQ]);
     }
 
+    @Command("removeHelp")
+    @Guard(NotBot)
+    private removeHelp(
+        message: CommandMessage,
+        client: Client
+    ) {
+        if(!this.helpQ.includes(message.author)) {
+            message.reply("You are not currently in line for help.");
+            return;
+        }
+        this.helpQ = this.helpQ.filter((e) => e != message.author);
+        message.reply("You have been removed from the help queue.");
+    }
+
     @CommandNotFound()
     @Guard(NotBot)
     private notFound(
