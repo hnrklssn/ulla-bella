@@ -29,6 +29,7 @@ function Authorize(message: Message, client: Client) {
 @Discord({ prefix: "!", commandCaseSensitive: true })
 abstract class AppDiscord {
     private helpQ = [];
+    private presentQ = [];
 
     @Command("hello")
     @Guard(NotBot)
@@ -93,6 +94,59 @@ abstract class AppDiscord {
         }
         this.helpQ = this.helpQ.filter((e) => e != message.author);
         message.reply("You have been removed from the help queue.");
+    }
+
+    @Command("askToPresent")
+    @Guard(NotBot)
+    private addPresenter(
+        message: CommandMessage,
+        client: Client
+    ) {
+        if(this.presentQ.includes(message.author)) {
+            message.reply(["You are already in line to present.", "You can remove yourself from the queue with !removePresent, or view the queue with !showPresent"]);
+            return;
+        }
+        const len = this.presentQ.push(message.author);
+        message.reply(["You are now in line to present.", this.queuePositionText(len-1)]);
+    }
+
+    @Command("nextPresent")
+    @Guard(NotBot, Authorize)
+    private popPresenter(
+        message: CommandMessage,
+        client: Client
+    ) {
+        if(this.presentQ.length === 0) {
+            message.reply("The presentation queue is empty.");
+            return;
+        }
+        const student = this.presentQ.shift();
+        this.popImpl(student, message);
+        return;
+    }
+
+    @Command("showPresent")
+    @Guard(NotBot)
+    private showPresenters(
+        message: CommandMessage,
+        client: Client
+    ) {
+        const displayedQ = this.showQueueImpl(this.presentQ);
+        message.reply(["This is the current presentation queue:", ...displayedQ]);
+    }
+
+    @Command("removePresent")
+    @Guard(NotBot)
+    private removePresent(
+        message: CommandMessage,
+        client: Client
+    ) {
+        if(!this.presentQ.includes(message.author)) {
+            message.reply("You are not currently in line to present.");
+            return;
+        }
+        this.helpQ = this.presentQ.filter((e) => e != message.author);
+        message.reply("You have been removed from the presentation queue.");
     }
 
     // TODO: add descriptions
