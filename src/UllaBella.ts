@@ -68,6 +68,7 @@ abstract class AppDiscord {
             return;
         }
         const student = this.helpQ.shift();
+        message.reply(`The next person in line is ${student}.`);
         this.popImpl(student, message);
         return;
     }
@@ -123,6 +124,7 @@ abstract class AppDiscord {
             return;
         }
         const student = this.presentQ.shift();
+        message.reply(`The next person in line is ${student}.`);
         this.popImpl(student, message);
         return;
     }
@@ -161,13 +163,15 @@ abstract class AppDiscord {
             message.reply("Both queues are empty.");
             return;
         }
+        let student;
         if(this.presentQ.length > this.helpQ.length * 3) {
-            const student = this.presentQ.shift();
+            student = this.presentQ.shift();
             message.reply(`The next person in line is ${student}. They want to present.`);
         } else {
-            const student = this.helpQ.shift();
+            student = this.helpQ.shift();
             message.reply(`The next person in line is ${student}. They want help.`);
         }
+        this.popImpl(student, message);
     }
 
     // TODO: add descriptions
@@ -223,9 +227,13 @@ abstract class AppDiscord {
         return `There are ${position} people before you.`;
     }
 
-    // TODO: move student to voice channel
+    // TODO: test this
     private popImpl(student: ClientUser, message: CommandMessage) {
-        message.reply(`The next person in line is ${student}.`);
+        const channel = message?.member.voice.channel;
+        if(!channel) return;
+        const member = student.presence.member;
+        if(!member) return;
+        member.voice.setChannel(channel, "It's your turn");
     }
 
     private showQueueImpl(queue: ClientUser[]) {
