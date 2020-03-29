@@ -20,7 +20,7 @@ function isAuthorized(message: Message) {
 
 function Authorize(message: Message, client: Client) {
     if(!isAuthorized(message)) {
-        message.reply("You don't have permission to do that");
+        message.reply("you don't have permission to do that");
         return false;
     }
     return true;
@@ -49,11 +49,12 @@ abstract class AppDiscord {
         client: Client
     ) {
         if(this.helpQ.includes(message.author)) {
-            message.reply(["You are already in line for help.", "You can remove yourself from the queue with !removeHelp, or view the queue with !showHelp"]);
+            message.reply(["you are already in line for help.", "You can remove yourself from the queue with !removeHelp, or view the queue with !showHelp"]);
             return;
         }
+        console.log("mentions: ", message.mentions);
         const len = this.helpQ.push(message.author);
-        message.reply(["You are now in line for help.", this.queuePositionText(len-1)]);
+        message.reply(["you are now in line for help.", this.queuePositionText(len-1)]);
     }
 
     @Command("nextHelp")
@@ -64,11 +65,11 @@ abstract class AppDiscord {
     ) {
         console.log("!nextHelp received");
         if(this.helpQ.length === 0) {
-            message.reply("The help queue is empty.");
+            message.reply("the help queue is empty.");
             return;
         }
         const student = this.helpQ.shift();
-        message.reply(`The next person in line is ${student}.`);
+        message.reply(`the next person in line is ${student}.`);
         this.popImpl(student, message);
         return;
     }
@@ -80,7 +81,7 @@ abstract class AppDiscord {
         client: Client
     ) {
         const displayedQ = this.showQueueImpl(this.helpQ);
-        message.reply(["This is the current help queue:", ...displayedQ]);
+        message.reply(["this is the current help queue:", ...displayedQ]);
     }
 
     @Command("removeHelp")
@@ -90,11 +91,11 @@ abstract class AppDiscord {
         client: Client
     ) {
         if(!this.helpQ.includes(message.author)) {
-            message.reply("You are not currently in line for help.");
+            message.reply("you are not currently in line for help.");
             return;
         }
         this.helpQ = this.helpQ.filter((e) => e != message.author);
-        message.reply("You have been removed from the help queue.");
+        message.reply("you have been removed from the help queue.");
     }
 
     // TODO: disable queueing for both at the same time
@@ -106,11 +107,11 @@ abstract class AppDiscord {
         client: Client
     ) {
         if(this.presentQ.includes(message.author)) {
-            message.reply(["You are already in line to present.", "You can remove yourself from the queue with !removePresent, or view the queue with !showPresent"]);
+            message.reply(["you are already in line to present.", "You can remove yourself from the queue with !removePresent, or view the queue with !showPresent"]);
             return;
         }
         const len = this.presentQ.push(message.author);
-        message.reply(["You are now in line to present.", this.queuePositionText(len-1)]);
+        message.reply(["you are now in line to present.", this.queuePositionText(len-1)]);
     }
 
     @Command("nextPresent")
@@ -120,11 +121,11 @@ abstract class AppDiscord {
         client: Client
     ) {
         if(this.presentQ.length === 0) {
-            message.reply("The presentation queue is empty.");
+            message.reply("the presentation queue is empty.");
             return;
         }
         const student = this.presentQ.shift();
-        message.reply(`The next person in line is ${student}.`);
+        message.reply(`the next person in line is ${student}.`);
         this.popImpl(student, message);
         return;
     }
@@ -136,7 +137,7 @@ abstract class AppDiscord {
         client: Client
     ) {
         const displayedQ = this.showQueueImpl(this.presentQ);
-        message.reply(["This is the current presentation queue:", ...displayedQ]);
+        message.reply(["this is the current presentation queue:", ...displayedQ]);
     }
 
     @Command("removePresent")
@@ -146,11 +147,11 @@ abstract class AppDiscord {
         client: Client
     ) {
         if(!this.presentQ.includes(message.author)) {
-            message.reply("You are not currently in line to present.");
+            message.reply("you are not currently in line to present.");
             return;
         }
         this.helpQ = this.presentQ.filter((e) => e != message.author);
-        message.reply("You have been removed from the presentation queue.");
+        message.reply("you have been removed from the presentation queue.");
     }
 
     @Command("next")
@@ -160,16 +161,16 @@ abstract class AppDiscord {
         client: Client
     ) {
         if(this.presentQ.length === 0 && this.helpQ.length === 0) {
-            message.reply("Both queues are empty.");
+            message.reply("both queues are empty.");
             return;
         }
         let student;
         if(this.presentQ.length > this.helpQ.length * 3) {
             student = this.presentQ.shift();
-            message.reply(`The next person in line is ${student}. They want to present.`);
+            message.reply(`the next person in line is ${student}. They want to present.`);
         } else {
             student = this.helpQ.shift();
-            message.reply(`The next person in line is ${student}. They want help.`);
+            message.reply(`the next person in line is ${student}. They want help.`);
         }
         this.popImpl(student, message);
     }
@@ -184,12 +185,12 @@ abstract class AppDiscord {
     ) {
         const cmds = this.getCommands();
         const unrestricted = cmds.filter(cmd => !this.isRestrictedCommand(cmd));
-        message.reply(["These are the available commands:", ...unrestricted.map(cmd => cmd.commandName)]);
+        message.reply(["these are the available commands:", ...unrestricted.map(cmd => cmd.commandName)]);
         if(!isAuthorized(message)) {
             return;
         }
         const restricted = cmds.filter(cmd => this.isRestrictedCommand(cmd));
-        message.reply(["You are also authorized to these restricted commands:", ...restricted.map(cmd => cmd.commandName)]);
+        message.reply(["you are also authorized to these restricted commands:", ...restricted.map(cmd => cmd.commandName)]);
 
     }
 
@@ -199,7 +200,7 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        message.reply("Command not found, show available commands with !commands");
+        message.reply("command not found, show available commands with !commands");
         console.log("msg: ", message);
     }
 
@@ -233,7 +234,11 @@ abstract class AppDiscord {
         if(!channel) return;
         const member = student.presence.member;
         if(!member) return;
-        member.voice.setChannel(channel, "It's your turn");
+        try {
+            member.voice.setChannel(channel, "It's your turn");
+        } catch {
+            // do nothing
+        }
     }
 
     private showQueueImpl(queue: ClientUser[]) {
