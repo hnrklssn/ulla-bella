@@ -12,6 +12,15 @@ import { ClientUser, Message } from "discord.js";
 function NotBot(message: Message, client: Client) {
     return client?.user?.id !== message.author.id;
 }
+
+function Authorize(message: Message, client: Client) {
+    if(!message.member.roles.cache.some(role => role.name === 'labbledare')) {
+        message.reply("You don't have permission to do that");
+        return false;
+    }
+    return true;
+}
+
 @Discord({ prefix: "!", commandCaseSensitive: true })
 abstract class AppDiscord {
     private helpQ = [];
@@ -43,8 +52,7 @@ abstract class AppDiscord {
     }
 
     @Command("nextHelp")
-    @Guard(NotBot)
-    // TODO: protect this
+    @Guard(NotBot, Authorize)
     private popHelp(
         message: CommandMessage,
         client: Client
