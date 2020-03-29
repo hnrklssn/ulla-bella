@@ -44,6 +44,7 @@ abstract class AppDiscord {
 
     @Command("nextHelp")
     @Guard(NotBot)
+    // TODO: protect this
     private popHelp(
         message: CommandMessage,
         client: Client
@@ -56,6 +57,16 @@ abstract class AppDiscord {
         const student = this.helpQ.shift();
         this.popImpl(student, message);
         return;
+    }
+
+    @Command("showHelp")
+    @Guard(NotBot)
+    private showHelp(
+        message: CommandMessage,
+        client: Client
+    ) {
+        const displayedQ = this.showQueueImpl(this.helpQ);
+        message.reply(["This is the current help queue:", ...displayedQ]);
     }
 
     @CommandNotFound()
@@ -83,7 +94,14 @@ abstract class AppDiscord {
         return `There are ${position} people before you.`;
     }
 
+    // TODO: move student to voice channel
     private popImpl(student: ClientUser, message: CommandMessage) {
         message.reply(`The next person in line is ${student}.`);
+    }
+
+    // TODO: don't mention people
+    private showQueueImpl(queue: ClientUser[]) {
+        if(queue.length == 0) return ["The queue is empty"];
+        return queue.map((e, i) => `${i+1}. ${e}`);
     }
 }
