@@ -10,7 +10,8 @@ function start() {
     const client = new Client();
     client.login(
         process.env.DISCORD_TOKEN,
-        `${__dirname}/UllaBella.ts` // glob string to load the classes
+        `${__dirname}/UllaBella.ts`,
+        `${__dirname}/UllaBella.js`,
     );
 }
 
