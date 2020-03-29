@@ -7,12 +7,12 @@ import {
     CommandNotFound,
     Guard,
 } from "@typeit/discord";
-import { Message } from "discord.js";
+import { ClientUser, Message } from "discord.js";
 
 function NotBot(message: Message, client: Client) {
     return client?.user?.id !== message.author.id;
 }
-@Discord({ prefix: "!" })
+@Discord({ prefix: "!", commandCaseSensitive: true })
 abstract class AppDiscord {
     private helpQ = [];
 
@@ -42,6 +42,22 @@ abstract class AppDiscord {
         message.reply(["You are now in line for help.", this.queuePositionText(len-1)]);
     }
 
+    @Command("nextHelp")
+    @Guard(NotBot)
+    private popHelp(
+        message: CommandMessage,
+        client: Client
+    ) {
+        console.log("!nextHelp received");
+        if(this.helpQ.length === 0) {
+            message.reply("The help queue is empty.");
+            return;
+        }
+        const student = this.helpQ.shift();
+        this.popImpl(student, message);
+        return;
+    }
+
     @CommandNotFound()
     @Guard(NotBot)
     private notFound(
@@ -65,5 +81,9 @@ abstract class AppDiscord {
             return "There is one person before you.";
         }
         return `There are ${position} people before you.`;
+    }
+
+    private popImpl(student: ClientUser, message: CommandMessage) {
+        message.reply(`The next person in line is ${student}.`);
     }
 }
