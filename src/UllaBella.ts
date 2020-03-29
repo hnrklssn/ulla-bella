@@ -6,6 +6,7 @@ import {
     CommandMessage,
     CommandNotFound,
     Guard,
+    MetadataStorage,
 } from "@typeit/discord";
 import { ClientUser, Message } from "discord.js";
 
@@ -13,8 +14,12 @@ function NotBot(message: Message, client: Client) {
     return client?.user?.id !== message.author.id;
 }
 
+function isAuthorized(message: Message) {
+    return message.member.roles.cache.some(role => role.name === 'labbledare');
+}
+
 function Authorize(message: Message, client: Client) {
-    if(!message.member.roles.cache.some(role => role.name === 'labbledare')) {
+    if(!isAuthorized(message)) {
         message.reply("You don't have permission to do that");
         return false;
     }
@@ -36,13 +41,12 @@ abstract class AppDiscord {
         message.reply("Hello!");
     }
 
-    @Command("help")
+    @Command("askForHelp")
     @Guard(NotBot)
     private addHelp(
         message: CommandMessage,
         client: Client
     ) {
-        console.log("!help received");
         if(this.helpQ.includes(message.author)) {
             message.reply(["You are already in line for help.", "You can remove yourself from the queue with !removeHelp, or view the queue with !showHelp"]);
             return;
@@ -91,19 +95,47 @@ abstract class AppDiscord {
         message.reply("You have been removed from the help queue.");
     }
 
+    // TODO: add descriptions
+    @Command("commands")
+    @Command("help")
+    @Guard(NotBot)
+    private commands(
+        message: CommandMessage,
+        client: Client
+    ) {
+        const cmds = this.getCommands();
+        const unrestricted = cmds.filter(cmd => !this.isRestrictedCommand(cmd));
+        message.reply(["These are the available commands:", ...unrestricted.map(cmd => cmd.commandName)]);
+        if(!isAuthorized(message)) {
+            return;
+        }
+        const restricted = cmds.filter(cmd => this.isRestrictedCommand(cmd));
+        message.reply(["You are also authorized to these restricted commands:", ...restricted.map(cmd => cmd.commandName)]);
+
+    }
+
     @CommandNotFound()
     @Guard(NotBot)
     private notFound(
         message: CommandMessage,
         client: Client
     ) {
-        message.reply("Command not found");
+        message.reply("Command not found, show available commands with !commands");
         console.log("msg: ", message);
     }
 
     @On("ready")
     private ready() {
         console.log("Ready");
+    }
+
+    private getCommands() {
+        return MetadataStorage.Instance.Ons.map(({params}) => params)
+            .filter(cmd => cmd.commandName?.length);
+    }
+
+    private isRestrictedCommand(cmd) {
+        return cmd.guards.some(guard => guard.params.fn === Authorize);
     }
 
     private queuePositionText(position: Number) {
