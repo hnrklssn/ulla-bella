@@ -10,10 +10,6 @@ import {
 } from "@typeit/discord";
 import { ClientUser, Message, User } from "discord.js";
 
-function NotBot(message: Message, client: Client) {
-    return client?.user?.id !== message.author.id;
-}
-
 function isAuthorized(message: Message) {
     return message.member.roles.cache.some(role => role.name === 'labbledare');
 }
@@ -32,7 +28,6 @@ abstract class AppDiscord {
     private presentQ: User[][] = [];
 
     @Command("hello")
-    @Guard(NotBot)
     private hello(
         message: CommandMessage,
         client: Client
@@ -41,7 +36,6 @@ abstract class AppDiscord {
     }
 
     @Command("askForHelp")
-    @Guard(NotBot)
     private addHelp(
         message: CommandMessage,
         client: Client
@@ -50,7 +44,6 @@ abstract class AppDiscord {
             message.reply(["you are already in line for help.", "You can remove yourself from the queue with !removeHelp, or view the queue with !showHelp"]);
             return;
         }
-        console.log("mentions: ", message.mentions);
         const coQueuers = [...message.mentions.users.values()];
         const len = this.helpQ.push([message.author, ...coQueuers]);
         if(coQueuers.length) {
@@ -65,12 +58,11 @@ abstract class AppDiscord {
     }
 
     @Command("nextHelp")
-    @Guard(NotBot, Authorize)
+    @Guard(Authorize)
     private popHelp(
         message: CommandMessage,
         client: Client
     ) {
-        console.log("!nextHelp received");
         if(this.helpQ.length === 0) {
             message.reply("the help queue is empty.");
             return;
@@ -86,7 +78,6 @@ abstract class AppDiscord {
     }
 
     @Command("showHelp")
-    @Guard(NotBot)
     private showHelp(
         message: CommandMessage,
         client: Client
@@ -96,7 +87,6 @@ abstract class AppDiscord {
     }
 
     @Command("removeHelp")
-    @Guard(NotBot)
     private removeHelp(
         message: CommandMessage,
         client: Client
@@ -110,14 +100,11 @@ abstract class AppDiscord {
     }
 
     // TODO: disable queueing for both at the same time
-    // TODO: add presentation in pairs
     @Command("askToPresent")
-    @Guard(NotBot)
     private addPresenter(
         message: CommandMessage,
         client: Client
     ) {
-        console.log(this.presentQ.some(pair => pair.includes(message.author)))
         if(this.presentQ.some(pair => pair.includes(message.author))) {
             message.reply(["you are already in line to present.", "You can remove yourself from the queue with !removePresent, or view the queue with !showPresent"]);
             return;
@@ -136,7 +123,7 @@ abstract class AppDiscord {
     }
 
     @Command("nextPresent")
-    @Guard(NotBot, Authorize)
+    @Guard(Authorize)
     private popPresenter(
         message: CommandMessage,
         client: Client
@@ -156,7 +143,6 @@ abstract class AppDiscord {
     }
 
     @Command("showPresent")
-    @Guard(NotBot)
     private showPresenters(
         message: CommandMessage,
         client: Client
@@ -166,7 +152,6 @@ abstract class AppDiscord {
     }
 
     @Command("removePresent")
-    @Guard(NotBot)
     private removePresent(
         message: CommandMessage,
         client: Client
@@ -180,7 +165,7 @@ abstract class AppDiscord {
     }
 
     @Command("next")
-    @Guard(NotBot, Authorize)
+    @Guard(Authorize)
     private popAny(
         message: CommandMessage,
         client: Client
@@ -211,7 +196,6 @@ abstract class AppDiscord {
     // TODO: add descriptions
     @Command("commands")
     @Command("help")
-    @Guard(NotBot)
     private commands(
         message: CommandMessage,
         client: Client
@@ -228,13 +212,11 @@ abstract class AppDiscord {
     }
 
     @CommandNotFound()
-    @Guard(NotBot)
     private notFound(
         message: CommandMessage,
         client: Client
     ) {
         message.reply("command not found. Show available commands with !commands");
-        console.log("msg: ", message);
     }
 
     @On("ready")
