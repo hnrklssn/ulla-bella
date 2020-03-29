@@ -96,6 +96,8 @@ abstract class AppDiscord {
         message.reply("You have been removed from the help queue.");
     }
 
+    // TODO: disable queueing for both at the same time
+    // TODO: add presentation in pairs
     @Command("askToPresent")
     @Guard(NotBot)
     private addPresenter(
@@ -147,6 +149,25 @@ abstract class AppDiscord {
         }
         this.helpQ = this.presentQ.filter((e) => e != message.author);
         message.reply("You have been removed from the presentation queue.");
+    }
+
+    @Command("next")
+    @Guard(NotBot, Authorize)
+    private popAny(
+        message: CommandMessage,
+        client: Client
+    ) {
+        if(this.presentQ.length === 0 && this.helpQ.length === 0) {
+            message.reply("Both queues are empty.");
+            return;
+        }
+        if(this.presentQ.length > this.helpQ.length * 3) {
+            const student = this.presentQ.shift();
+            message.reply(`The next person in line is ${student}. They want to present.`);
+        } else {
+            const student = this.helpQ.shift();
+            message.reply(`The next person in line is ${student}. They want help.`);
+        }
     }
 
     // TODO: add descriptions
