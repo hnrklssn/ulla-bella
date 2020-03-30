@@ -37,7 +37,7 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        message.reply("hallååååå! Det här är Ulla-Bella, min sekreterare!");
+        message.channel.send({embed: {title: "hallååååå! Det här är Ulla-Bella, min sekreterare!", url: "https://www.oppetarkiv.se/video/18326542/solstollarna"}});
     }
 
     @Command("askForHelp", {description: " [*@labpartner*] - place yourself and your labpartner in the help queue"})
