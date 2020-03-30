@@ -30,7 +30,9 @@ abstract class AppDiscord {
     private helpQ: User[][] = [];
     private presentQ: User[][] = [];
 
-    @Command("hello")
+    @Command("hello", {infos: "hidden"})
+    @Command("hallå", {infos: "hidden"})
+    @Command("hej", {infos: "hidden"})
     private hello(
         message: CommandMessage,
         client: Client
@@ -39,6 +41,8 @@ abstract class AppDiscord {
     }
 
     @Command("askForHelp")
+    @Command("helpMe", {infos: "hidden"})
+    @Command("hjälpMig", {infos: "hidden"})
     private addHelp(
         message: CommandMessage,
         client: Client
@@ -81,6 +85,7 @@ abstract class AppDiscord {
     }
 
     @Command("showHelp")
+    @Command("visaHjälp", {infos: "hidden"})
     private showHelp(
         message: CommandMessage,
         client: Client
@@ -90,6 +95,7 @@ abstract class AppDiscord {
     }
 
     @Command("removeHelp")
+    @Command("gåUrHjälp", {infos: "hidden"})
     private removeHelp(
         message: CommandMessage,
         client: Client
@@ -104,6 +110,8 @@ abstract class AppDiscord {
 
     // TODO: disable queueing for both at the same time
     @Command("askToPresent")
+    @Command("present", {infos: "hidden"})
+    @Command("redovisa", {infos: "hidden"})
     private addPresenter(
         message: CommandMessage,
         client: Client
@@ -146,6 +154,7 @@ abstract class AppDiscord {
     }
 
     @Command("showPresent")
+    @Command("visaRedovisa", {infos: "hidden"})
     private showPresenters(
         message: CommandMessage,
         client: Client
@@ -155,6 +164,7 @@ abstract class AppDiscord {
     }
 
     @Command("removePresent")
+    @Command("slutaRedovisa", {infos: "hidden"})
     private removePresent(
         message: CommandMessage,
         client: Client
@@ -198,12 +208,15 @@ abstract class AppDiscord {
 
     // TODO: add descriptions
     @Command("commands")
-    @Command("help")
+    @Command("help", {infos: "hidden"})
+    @Command("hapl", {infos: "hidden"})
+    @Command("hjälp", {infos: "hidden"})
+    @Command("kommandon", {infos: "hidden"})
     private commands(
         message: CommandMessage,
         client: Client
     ) {
-        const cmds = this.getCommands();
+        const cmds = this.getCommands().filter(cmd => !this.isHiddenCommand(cmd));
         const unrestricted = cmds.filter(cmd => !this.isRestrictedCommand(cmd));
         message.reply(["these are the available commands:", ...unrestricted.map(cmd => cmd.commandName)]);
         if(!isAuthorized(message)) {
@@ -233,6 +246,10 @@ abstract class AppDiscord {
 
     private isRestrictedCommand(cmd: ICommandInfos<CommandSettings>): Boolean {
         return cmd.infos === "restricted";
+    }
+
+    private isHiddenCommand(cmd: ICommandInfos<CommandSettings>): Boolean {
+        return cmd.infos === "hidden";
     }
 
     private queuePositionText(position: Number) {
