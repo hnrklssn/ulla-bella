@@ -228,6 +228,17 @@ abstract class AppDiscord {
 
     }
 
+    @Command("code", {description: " - get my source code"})
+    @Command("kod", {infos: "hidden"})
+    @Command("github", {infos: "hidden"})
+    private sourceCode(
+        message: CommandMessage,
+        client: Client
+    ) {
+        message.reply("you can find my source code here: https://github.com/hnrklssn/ulla-bella");
+    }
+
+
     @CommandNotFound()
     private notFound(
         message: CommandMessage,
