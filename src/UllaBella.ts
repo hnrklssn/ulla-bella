@@ -40,7 +40,7 @@ abstract class AppDiscord {
         message.reply("hallååååå! Det här är Ulla-Bella, min sekreterare!");
     }
 
-    @Command("askForHelp")
+    @Command("askForHelp", {description: " [@labpartner] - place yourself and your labpartner in the help queue"})
     @Command("helpMe", {infos: "hidden"})
     @Command("hjälpMig", {infos: "hidden"})
     private addHelp(
@@ -64,7 +64,7 @@ abstract class AppDiscord {
         }
     }
 
-    @Command("nextHelp", {infos: "restricted"})
+    @Command("nextHelp", {infos: "restricted", description: " - pick the next student, specifically from the help queue"})
     @Guard(Authorize)
     private popHelp(
         message: CommandMessage,
@@ -84,7 +84,7 @@ abstract class AppDiscord {
         return;
     }
 
-    @Command("showHelp")
+    @Command("showHelp", {description: " - show the current help queue"})
     @Command("visaHjälp", {infos: "hidden"})
     private showHelp(
         message: CommandMessage,
@@ -94,7 +94,7 @@ abstract class AppDiscord {
         message.reply(["this is the current help queue:", ...displayedQ]);
     }
 
-    @Command("removeHelp")
+    @Command("removeHelp", {description: " - remove yourself and your lab partner from the help queue"})
     @Command("gåUrHjälp", {infos: "hidden"})
     private removeHelp(
         message: CommandMessage,
@@ -109,7 +109,7 @@ abstract class AppDiscord {
     }
 
     // TODO: disable queueing for both at the same time
-    @Command("askToPresent")
+    @Command("askToPresent", {description: " [@labpartner] - place yourself and your labpartner in the presentation queue"})
     @Command("present", {infos: "hidden"})
     @Command("redovisa", {infos: "hidden"})
     private addPresenter(
@@ -133,7 +133,7 @@ abstract class AppDiscord {
         }
     }
 
-    @Command("nextPresent", {infos: "restricted"})
+    @Command("nextPresent", {infos: "restricted", description: " - pick the next student, specifically from the presentation queue"})
     @Guard(Authorize)
     private popPresenter(
         message: CommandMessage,
@@ -153,7 +153,7 @@ abstract class AppDiscord {
         return;
     }
 
-    @Command("showPresent")
+    @Command("showPresent", {description: " - show the current help queue"})
     @Command("visaRedovisa", {infos: "hidden"})
     private showPresenters(
         message: CommandMessage,
@@ -163,7 +163,7 @@ abstract class AppDiscord {
         message.reply(["this is the current presentation queue:", ...displayedQ]);
     }
 
-    @Command("removePresent")
+    @Command("removePresent", {description: " - remove yourself and your lab partner from the presentation queue"})
     @Command("slutaRedovisa", {infos: "hidden"})
     private removePresent(
         message: CommandMessage,
@@ -177,7 +177,7 @@ abstract class AppDiscord {
         message.reply("you have been removed from the presentation queue.");
     }
 
-    @Command("next", {infos: "restricted"})
+    @Command("next", {infos: "restricted", description: " - automatically select the next student from either the help queue or the presentation queue"})
     @Guard(Authorize)
     private popAny(
         message: CommandMessage,
@@ -206,8 +206,7 @@ abstract class AppDiscord {
         this.popImpl(students, message);
     }
 
-    // TODO: add descriptions
-    @Command("commands")
+    @Command("commands", {description: " - show this message"})
     @Command("help", {infos: "hidden"})
     @Command("hapl", {infos: "hidden"})
     @Command("hjälp", {infos: "hidden"})
@@ -218,12 +217,14 @@ abstract class AppDiscord {
     ) {
         const cmds = this.getCommands().filter(cmd => !this.isHiddenCommand(cmd));
         const unrestricted = cmds.filter(cmd => !this.isRestrictedCommand(cmd));
-        message.reply(["these are the available commands:", ...unrestricted.map(cmd => cmd.commandName)]);
+        message.reply(["these are the available commands:", ...unrestricted.map(cmd =>
+            `${cmd.prefix}${cmd.commandName}${cmd.description}`)]);
         if(!isAuthorized(message)) {
             return;
         }
         const restricted = cmds.filter(cmd => this.isRestrictedCommand(cmd));
-        message.reply(["you are also authorized to these restricted commands:", ...restricted.map(cmd => cmd.commandName)]);
+        message.reply(["you are also authorized to these restricted commands:", ...restricted.map(cmd =>
+            `${cmd.prefix}${cmd.commandName}${cmd.description}`)]);
 
     }
 
