@@ -6,12 +6,13 @@ import {
     CommandMessage,
     CommandNotFound,
     Guard,
+    ICommandInfos,
     MetadataStorage,
 } from "@typeit/discord";
 import { ClientUser, Message, User } from "discord.js";
 
 function isAuthorized(message: Message) {
-    return message.member.roles.cache.some(role => role.name === 'labbledare');
+    return message.member?.roles.cache.some(role => role.name === 'labbledare');
 }
 
 function Authorize(message: Message, client: Client) {
@@ -21,6 +22,8 @@ function Authorize(message: Message, client: Client) {
     }
     return true;
 }
+
+type CommandSettings = "restricted" | "hidden" | undefined;
 
 @Discord({ prefix: "!", commandCaseSensitive: true })
 abstract class AppDiscord {
@@ -57,7 +60,7 @@ abstract class AppDiscord {
         }
     }
 
-    @Command("nextHelp")
+    @Command("nextHelp", {infos: "restricted"})
     @Guard(Authorize)
     private popHelp(
         message: CommandMessage,
@@ -122,7 +125,7 @@ abstract class AppDiscord {
         }
     }
 
-    @Command("nextPresent")
+    @Command("nextPresent", {infos: "restricted"})
     @Guard(Authorize)
     private popPresenter(
         message: CommandMessage,
@@ -164,7 +167,7 @@ abstract class AppDiscord {
         message.reply("you have been removed from the presentation queue.");
     }
 
-    @Command("next")
+    @Command("next", {infos: "restricted"})
     @Guard(Authorize)
     private popAny(
         message: CommandMessage,
@@ -224,13 +227,12 @@ abstract class AppDiscord {
         console.log("Ready");
     }
 
-    private getCommands() {
-        return MetadataStorage.Instance.Ons.map(({params}) => params)
-            .filter(cmd => cmd.commandName?.length);
+    private getCommands(): ICommandInfos<CommandSettings>[] {
+        return Client.getCommands<CommandSettings>();
     }
 
-    private isRestrictedCommand(cmd) {
-        return cmd.guards.some(guard => guard.params.fn === Authorize);
+    private isRestrictedCommand(cmd: ICommandInfos<CommandSettings>): Boolean {
+        return cmd.infos === "restricted";
     }
 
     private queuePositionText(position: Number) {
