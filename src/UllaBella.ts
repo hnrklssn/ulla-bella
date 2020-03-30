@@ -256,6 +256,6 @@ abstract class AppDiscord {
 
     private showQueueImpl(queue: User[][]) {
         if(queue.length == 0) return ["The queue is empty"];
-        return queue.map((students, i) => `${i+1}. ${students.join(", ")}`);
+        return queue.map((students, i) => `${i+1}. ${students.map(u => u.username).join(", ")}`);
     }
 }
