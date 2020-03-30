@@ -40,7 +40,7 @@ abstract class AppDiscord {
         message.reply("hallååååå! Det här är Ulla-Bella, min sekreterare!");
     }
 
-    @Command("askForHelp", {description: " [@labpartner] - place yourself and your labpartner in the help queue"})
+    @Command("askForHelp", {description: " [*@labpartner*] - place yourself and your labpartner in the help queue"})
     @Command("helpMe", {infos: "hidden"})
     @Command("hjälpMig", {infos: "hidden"})
     private addHelp(
@@ -109,7 +109,7 @@ abstract class AppDiscord {
     }
 
     // TODO: disable queueing for both at the same time
-    @Command("askToPresent", {description: " [@labpartner] - place yourself and your labpartner in the presentation queue"})
+    @Command("askToPresent", {description: " [*@labpartner*] - place yourself and your labpartner in the presentation queue"})
     @Command("present", {infos: "hidden"})
     @Command("redovisa", {infos: "hidden"})
     private addPresenter(
@@ -218,13 +218,13 @@ abstract class AppDiscord {
         const cmds = this.getCommands().filter(cmd => !this.isHiddenCommand(cmd));
         const unrestricted = cmds.filter(cmd => !this.isRestrictedCommand(cmd));
         message.reply(["these are the available commands:", ...unrestricted.map(cmd =>
-            `${cmd.prefix}${cmd.commandName}${cmd.description}`)]);
+            `**${cmd.prefix}${cmd.commandName}**${cmd.description}`)]);
         if(!isAuthorized(message)) {
             return;
         }
         const restricted = cmds.filter(cmd => this.isRestrictedCommand(cmd));
         message.reply(["you are also authorized to these restricted commands:", ...restricted.map(cmd =>
-            `${cmd.prefix}${cmd.commandName}${cmd.description}`)]);
+            `**${cmd.prefix}${cmd.commandName}**${cmd.description}`)]);
 
     }
 
