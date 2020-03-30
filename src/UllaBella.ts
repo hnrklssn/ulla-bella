@@ -51,7 +51,8 @@ abstract class AppDiscord {
             message.reply(["you are already in line for help.", "You can remove yourself from the queue with !removeHelp, or view the queue with !showHelp"]);
             return;
         }
-        const coQueuers = [...message.mentions.users.values()];
+        const coQueuers = [...message.mentions.users.values()]
+            .filter(user => !user.bot && user.id != message.author.id);
         const len = this.helpQ.push([message.author, ...coQueuers]);
         if(coQueuers.length) {
             message.reply([`you are now in line for help with ${coQueuers.join(", ")}.`,
@@ -120,7 +121,10 @@ abstract class AppDiscord {
             message.reply(["you are already in line to present.", "You can remove yourself from the queue with !removePresent, or view the queue with !showPresent"]);
             return;
         }
-        const coQueuers = [...message.mentions.users.values()];
+        console.log(message.mentions);
+        console.log(message.mentions.users);
+        const coQueuers = [...message.mentions.users.values()]
+            .filter(user => !user.bot && user.id != message.author.id);
         const len = this.presentQ.push([message.author, ...coQueuers]);
         if(coQueuers.length) {
             message.reply([`you are now in line to present with ${coQueuers.join(", ")}.`,
