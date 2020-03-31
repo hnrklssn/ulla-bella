@@ -12,7 +12,7 @@ import {
 import { ClientUser, Message, User } from "discord.js";
 
 function isAuthorized(message: Message) {
-    return message.member?.roles.cache.some(role => role.name === 'labbledare');
+    return message.member?.roles.some(role => role.name === 'labbledare');
 }
 
 function Authorize(message: Message, client: Client) {
@@ -26,7 +26,7 @@ function Authorize(message: Message, client: Client) {
 type CommandSettings = "restricted" | "hidden" | undefined;
 
 @Discord({ prefix: "!", commandCaseSensitive: true })
-abstract class AppDiscord {
+abstract class UllaBella {
     private helpQ: User[][] = [];
     private presentQ: User[][] = [];
 
@@ -40,6 +40,36 @@ abstract class AppDiscord {
         message.channel.send({embed: {title: "hallååååå! Det här är Ulla-Bella, min sekreterare!", url: "https://www.oppetarkiv.se/video/18326542/solstollarna"}});
     }
 
+    private isInQueue(student: User, q: User[][]): Boolean {
+        return q.some(pair => pair.includes(student));
+    }
+
+    private EnqueueGuard(message: Message) {
+        if(this.isInQueue(message.author, this.helpQ)) {
+            message.reply(["you are already in line for help.", "You can remove yourself from the queue with !removeHelp, or view the queue with !showHelp"]);
+            return false;
+        }
+        if(this.isInQueue(message.author, this.presentQ)) {
+            message.reply(["you are already in line to present.", "You can remove yourself from the queue with !removePresent, or view the queue with !showPresent"]);
+            return false;
+        }
+        const coQueuers = [...message.mentions.users.values()];
+        const inHelpQ = coQueuers.filter(student => this.isInQueue(student, this.helpQ));
+        const inPresentQ = coQueuers.filter(student => this.isInQueue(student, this.presentQ));
+        if(inHelpQ.length === 0 && inPresentQ.length === 0) return true;
+        if(inHelpQ.length === 1) {
+            message.reply(`the following lab partner is already in the help queue: ${inHelpQ[0]}`);
+        } else if(inHelpQ.length) {
+            message.reply(`the following lab partners are already in the help queue: ${inHelpQ}`);
+        }
+        if(inPresentQ.length === 1) {
+            message.reply(`the following lab partner is already in the presentation queue: ${inPresentQ[0]}`);
+        } else if(inPresentQ.length) {
+            message.reply(`the following lab partners are already in the presentation queue: ${inPresentQ}`);
+        }
+        return false;
+    }
+
     @Command("askForHelp", {description: " [*@labpartner*] - place yourself and your labpartner in the help queue"})
     @Command("helpMe", {infos: "hidden"})
     @Command("hjälpMig", {infos: "hidden"})
@@ -47,13 +77,11 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        if(this.helpQ.some(pair => pair.includes(message.author))) {
-            message.reply(["you are already in line for help.", "You can remove yourself from the queue with !removeHelp, or view the queue with !showHelp"]);
-            return;
-        }
+        if(!this.EnqueueGuard(message)) return;
         const coQueuers = [...message.mentions.users.values()]
             .filter(user => !user.bot && user.id != message.author.id);
-        const len = this.helpQ.push([message.author, ...coQueuers]);
+        const labgroup = [message.author, ...coQueuers];
+        const len = this.helpQ.push(labgroup);
         if(coQueuers.length) {
             message.reply([`you are now in line for help with ${coQueuers.join(", ")}.`,
                 this.queuePositionText(len-1)]);
@@ -95,6 +123,7 @@ abstract class AppDiscord {
         message.reply(["this is the current help queue:", ...displayedQ]);
     }
 
+    // TODO: merge this with removePresent when you can only be in one line at a time
     @Command("removeHelp", {description: " - remove yourself and your lab partner from the help queue"})
     @Command("gåUrHjälp", {infos: "hidden"})
     private removeHelp(
@@ -109,7 +138,6 @@ abstract class AppDiscord {
         message.reply("you have been removed from the help queue.");
     }
 
-    // TODO: disable queueing for both at the same time
     @Command("askToPresent", {description: " [*@labpartner*] - place yourself and your labpartner in the presentation queue"})
     @Command("present", {infos: "hidden"})
     @Command("redovisa", {infos: "hidden"})
@@ -117,15 +145,11 @@ abstract class AppDiscord {
         message: CommandMessage,
         client: Client
     ) {
-        if(this.presentQ.some(pair => pair.includes(message.author))) {
-            message.reply(["you are already in line to present.", "You can remove yourself from the queue with !removePresent, or view the queue with !showPresent"]);
-            return;
-        }
-        console.log(message.mentions);
-        console.log(message.mentions.users);
+        if(!this.EnqueueGuard(message)) return;
         const coQueuers = [...message.mentions.users.values()]
             .filter(user => !user.bot && user.id != message.author.id);
-        const len = this.presentQ.push([message.author, ...coQueuers]);
+        const labgroup = [message.author, ...coQueuers];
+        const len = this.presentQ.push(labgroup);
         if(coQueuers.length) {
             message.reply([`you are now in line to present with ${coQueuers.join(", ")}.`,
                 this.queuePositionText(len-1)]);
@@ -280,13 +304,13 @@ abstract class AppDiscord {
 
     // TODO: figure out a way to get this to work
     private popImpl(students: User[], message: CommandMessage) {
-        const channel = message?.member.voice.channel;
+        /*const channel = message?.member.voice.channel;
         if(!channel) return;
         students.forEach(student => {
             const member = student.presence.member;
             if(!member) return;
             //member.voice.setChannel(channel, "It's your turn").catch(console.error);
-        });
+        });*/
     }
 
     private showQueueImpl(queue: User[][]) {
