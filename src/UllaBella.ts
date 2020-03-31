@@ -9,7 +9,13 @@ import {
     ICommandInfos,
     MetadataStorage,
 } from "@typeit/discord";
-import { ClientUser, Message, User } from "discord.js";
+import {
+    ClientUser,
+    Guild,
+    Message,
+    TextChannel,
+    User
+} from "discord.js";
 
 function isAuthorized(message: Message) {
     return message.member?.roles.some(role => role.name === 'labbledare');
@@ -91,6 +97,7 @@ abstract class UllaBella {
                 "Tip: you can queue together with your lab partner by mentioning them when asking for help."
             ]);
         }
+        this.showQueues(message);
     }
 
     @Command("nextHelp", {infos: "restricted", description: " - pick the next student, specifically from the help queue"})
@@ -110,7 +117,7 @@ abstract class UllaBella {
             message.reply(`the next people in line are ${students.join(", ")}.`);
         }
         this.popImpl(students, message);
-        return;
+        this.showQueues(message);
     }
 
     @Command("showHelp", {description: " - show the current help queue"})
@@ -144,6 +151,7 @@ abstract class UllaBella {
                 "Tip: you can queue together with your lab partner by mentioning them when asking to present."
             ]);
         }
+        this.showQueues(message);
     }
 
     @Command("nextPresent", {infos: "restricted", description: " - pick the next student, specifically from the presentation queue"})
@@ -163,10 +171,10 @@ abstract class UllaBella {
             message.reply(`the next people in line are ${students.join(", ")}.`);
         }
         this.popImpl(students, message);
-        return;
+        this.showQueues(message);
     }
 
-    @Command("showPresent", {description: " - show the current help queue"})
+    @Command("showPresent", {description: " - show the current presentation queue"})
     @Command("visaRedovisa", {infos: "hidden"})
     private showPresenters(
         message: CommandMessage,
@@ -200,6 +208,7 @@ abstract class UllaBella {
             this.helpQ = this.helpQ.filter((pair) => !pair.includes(message.author));
             message.reply("you have been removed from the help queue.");
         }
+        this.showQueues(message);
     }
 
     @Command("next", {infos: "restricted", description: " - automatically select the next student from either the help queue or the presentation queue"})
@@ -229,6 +238,7 @@ abstract class UllaBella {
             }
         }
         this.popImpl(students, message);
+        this.showQueues(message);
     }
 
     @Command("commands", {description: " - show this message"})
@@ -270,6 +280,21 @@ abstract class UllaBella {
         client: Client
     ) {
         message.reply("command not found. Show available commands with !commands");
+    }
+
+    @Command("showQueues", {infos: "hidden"})
+    private showQueues(
+        message: CommandMessage
+    ) {
+        const channel = this.getQueueChannel(message.guild);
+        const displayedHelp = this.helpQ.length ? this.showQueueImpl(this.helpQ) : "-";
+        channel?.send(["This is the current help queue:", ...displayedHelp]);
+        const displayedPresent = this.presentQ.length ? this.showQueueImpl(this.presentQ) : "-";
+        channel?.send(["This is the current presentation queue:", ...displayedPresent]);
+    }
+
+    private getQueueChannel(guild: Guild): TextChannel | undefined {
+        return [...guild.channels.values()].find(({type, name}) => type === "text" && name === "kö") as TextChannel;
     }
 
     @On("ready")
