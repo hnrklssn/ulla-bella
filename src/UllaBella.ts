@@ -123,21 +123,6 @@ abstract class UllaBella {
         message.reply(["this is the current help queue:", ...displayedQ]);
     }
 
-    // TODO: merge this with removePresent when you can only be in one line at a time
-    @Command("removeHelp", {description: " - remove yourself and your lab partner from the help queue"})
-    @Command("gåUrHjälp", {infos: "hidden"})
-    private removeHelp(
-        message: CommandMessage,
-        client: Client
-    ) {
-        if(!this.helpQ.some(pair => pair.includes(message.author))) {
-            message.reply("you are not currently in line for help.");
-            return;
-        }
-        this.helpQ = this.helpQ.filter((pair) => !pair.includes(message.author));
-        message.reply("you have been removed from the help queue.");
-    }
-
     @Command("askToPresent", {description: " [*@labpartner*] - place yourself and your labpartner in the presentation queue"})
     @Command("present", {infos: "hidden"})
     @Command("redovisa", {infos: "hidden"})
@@ -191,18 +176,30 @@ abstract class UllaBella {
         message.reply(["this is the current presentation queue:", ...displayedQ]);
     }
 
-    @Command("removePresent", {description: " - remove yourself and your lab partner from the presentation queue"})
-    @Command("slutaRedovisa", {infos: "hidden"})
+    @Command("removeMe", {description: " - remove yourself and your lab partner from the queue you are in"})
+    @Command("remove", {infos: "hidden"})
+    @Command("nvm", {infos: "hidden"})
+    @Command("leaveQueue", {infos: "hidden"})
+    @Command("slutaKöa", {infos: "hidden"})
     private removePresent(
         message: CommandMessage,
         client: Client
     ) {
-        if(!this.presentQ.some(pair => pair.includes(message.author))) {
-            message.reply("you are not currently in line to present.");
+        const inPresent = this.isInQueue(message.author, this.presentQ);
+        const inHelp = this.isInQueue(message.author, this.helpQ);
+        if(!inPresent && !inHelp) {
+            message.reply("you are not currently in any queue.");
             return;
         }
-        this.presentQ = this.presentQ.filter((pair) => !pair.includes(message.author));
-        message.reply("you have been removed from the presentation queue.");
+        
+        if(inPresent) {
+            this.presentQ = this.presentQ.filter((pair) => !pair.includes(message.author));
+            message.reply("you have been removed from the presentation queue.");
+        }
+        if(inHelp) {
+            this.helpQ = this.helpQ.filter((pair) => !pair.includes(message.author));
+            message.reply("you have been removed from the help queue.");
+        }
     }
 
     @Command("next", {infos: "restricted", description: " - automatically select the next student from either the help queue or the presentation queue"})
