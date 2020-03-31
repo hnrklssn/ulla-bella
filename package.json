@@ -27,7 +27,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@typeit/discord": "^2.0.3",
+    "@typeit/discord": "^2.0.9",
     "@types/ws": "^7.2.3",
     "reflect-metadata": "^0.1.13"
   }

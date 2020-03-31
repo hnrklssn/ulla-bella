@@ -31,7 +31,7 @@ function Authorize(message: Message, client: Client) {
 
 type CommandSettings = "restricted" | "hidden" | undefined;
 
-@Discord({ prefix: "!", commandCaseSensitive: true })
+@Discord({ prefix: "!" })
 abstract class UllaBella {
     private helpQ: User[][] = [];
     private presentQ: User[][] = [];
